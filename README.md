@@ -1,58 +1,74 @@
 # OpenShift Platform Security Playground
 
-Laboratorio local de Platform Security sobre OpenShift Local / CRC.
+Laboratorio personal de Platform Security sobre OpenShift Local (CRC), construido con enfoque GitOps y orientado a automatización, seguridad y operación de plataforma.
 
-Este proyecto tiene como objetivo construir una plataforma de seguridad, observabilidad y automatización basada en GitOps, manteniendo la mayor parte de los componentes dentro del cluster OpenShift y usando servicios externos solo cuando aportan valor claro, como GitHub para el código fuente y Quay como registro de imágenes externo.
+La idea es gestionar tanto aplicaciones como infraestructura desde Git, manteniendo el entorno lo más autocontenido posible dentro del cluster y usando únicamente herramientas open source o incluidas en el ecosistema OpenShift, sin dependencias de licencias comerciales adicionales.
 
-## Objetivos
+## Objetivo
 
-- Gestionar aplicaciones e infraestructura usando GitOps con Argo CD.
-- Construir imágenes mediante pipelines Tekton.
-- Publicar imágenes en Quay externo.
-- Aplicar políticas de seguridad con Kyverno.
-- Detectar amenazas en runtime con Falco.
-- Escanear vulnerabilidades de imágenes con Trivy.
-- Gestionar certificados con cert-manager.
-- Gestionar secretos mediante External Secrets.
-- Añadir visibilidad de red con OpenShift Network Observability.
-- Centralizar métricas y dashboards con Prometheus y Grafana.
-- Enviar alertas a un servidor SMTP desplegado dentro del cluster.
+Construir una plataforma reproducible que permita experimentar con:
 
-## Arquitectura general
+- CI con Tekton
+- CD/GitOps con Argo CD
+- políticas de seguridad con Kyverno
+- detección de amenazas en runtime con Falco
+- escaneo de imágenes con Trivy
+- gestión de certificados con cert-manager
+- gestión de secretos con External Secrets
+- autenticación con Keycloak
+- observabilidad con Prometheus y Grafana
+- alertado por correo mediante un servidor SMTP interno
+- backup y recuperación con OADP
 
-El entorno se ejecuta sobre un cluster OpenShift Local / CRC.
+## Arquitectura
 
-Los únicos elementos externos principales son:
+### Externo
 
-- GitHub, como repositorio de código y manifiestos GitOps.
-- Quay, como registro externo de imágenes.
+Solo se usan servicios externos cuando tiene sentido:
 
-Dentro del cluster se despliegan los componentes de CI/CD, seguridad, observabilidad, autenticación, certificados, secretos, alertas y aplicaciones de ejemplo.
+- GitHub → código fuente y manifiestos GitOps
+- Quay → registro de imágenes
 
-## Flujo general
+### Dentro del cluster
 
-1. Los desarrolladores hacen push de código y manifiestos a GitHub.
-2. Tekton ejecuta pipelines de CI para construir, probar y escanear imágenes.
-3. Las imágenes se publican en Quay.
-4. Argo CD detecta cambios en Git y sincroniza el estado deseado.
-5. OpenShift despliega aplicaciones, infraestructura y configuración de seguridad.
-6. Kyverno valida políticas de seguridad.
-7. Falco detecta comportamiento sospechoso en runtime.
-8. Trivy analiza vulnerabilidades de imágenes.
-9. Network Observability aporta visibilidad de flujos de red.
-10. Prometheus y Grafana permiten monitorización y dashboards.
-11. Las alertas se envían a un servidor SMTP interno del cluster.
+Todo lo demás vive dentro de OpenShift:
 
-## Estructura del repositorio
+- OpenShift GitOps (Argo CD)
+- OpenShift Pipelines (Tekton)
+- Kyverno
+- Falco
+- Trivy
+- cert-manager
+- External Secrets
+- Keycloak
+- Prometheus
+- Grafana
+- servidor SMTP interno
+- OADP
+- aplicaciones de prueba
+
+## Flujo
+
+1. Se hace push a GitHub
+2. Tekton ejecuta CI (build, test, escaneo, push a Quay)
+3. Argo CD detecta cambios y sincroniza
+4. OpenShift aplica el estado deseado
+5. Kyverno valida políticas
+6. Falco monitoriza runtime
+7. Prometheus recoge métricas
+8. Grafana visualiza dashboards
+9. Alertmanager envía alertas vía SMTP interno
+
+## Estructura
 
 ```text
-argocd/          Manifiestos de Argo CD y patrón App of Apps.
-bootstrap/       Recursos iniciales necesarios antes de GitOps.
-operators/       Instalación declarativa de operadores.
-platform/        Configuración base de plataforma.
-security/        Políticas, runtime security, RBAC y escaneo.
-observability/   Métricas, dashboards, tracing y red.
-applications/    Aplicaciones demo.
-pipelines/       Pipelines Tekton.
-docs/            Documentación del proyecto.
-scripts/         Scripts auxiliares.
+argocd/          Configuración GitOps y App of Apps
+bootstrap/       Recursos iniciales del cluster
+operators/       Instalación de operadores
+platform/        Servicios base de plataforma
+security/        Políticas y controles de seguridad
+observability/   Métricas, alertas y dashboards
+pipelines/       CI con Tekton
+applications/    Aplicaciones de prueba
+docs/            Documentación y notas
+scripts/         Utilidades auxiliares
